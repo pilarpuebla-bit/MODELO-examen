@@ -1,0 +1,32 @@
+# depslib dependency file v1.0
+1791374969 source:c:\users\pilar\downloads\restaurant\archivoserviciomesa.cpp
+	"Fecha.h"
+	"ArchivoServicioMesa.h"
+
+1791374969 c:\users\pilar\downloads\restaurant\fecha.h
+	<string>
+
+1791374969 c:\users\pilar\downloads\restaurant\archivoserviciomesa.h
+	<string>
+	"ServicioMesa.h"
+
+1791374969 c:\users\pilar\downloads\restaurant\serviciomesa.h
+	"Fecha.h"
+
+1791374969 source:c:\users\pilar\downloads\restaurant\fecha.cpp
+	"Fecha.h"
+
+1791424816 source:c:\users\pilar\downloads\restaurant\main.cpp
+	"Examen.h"
+
+1791424816 c:\users\pilar\downloads\restaurant\examen.h
+
+1791374969 source:c:\users\pilar\downloads\restaurant\serviciomesa.cpp
+	"ServicioMesa.h"
+
+1791414700 source:c:\users\pilar\downloads\restaurant\examen.cpp
+	<iostream>
+	"Examen.h"
+	"ServicioMesa.h"
+	"ArchivoServicioMesa.h"
+
