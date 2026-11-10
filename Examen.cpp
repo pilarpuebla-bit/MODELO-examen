@@ -1,415 +1,143 @@
 #include <iostream>
-#include <cstdio>
+
 using namespace std;
 
 #include "Examen.h"
-#include "ServicioMesa.h"
-#include "ArchivoServicioMesa.h"
+#include "venta.h"
+#include "ArchivoVentas.h"
 
-
-
-void Examen::EjemploDeListado(){
-   ArchivoServicioMesa archivo("restaurant.dat");
-   ServicioMesa registro;
-
-   int i, cantidadRegistros = archivo.CantidadRegistros();
-   for(i = 0; i < cantidadRegistros; i++){
-      registro = archivo.Leer(i);
-      cout << registro.toCSV() << endl;
-   }
-}
 
 void Examen::Punto1(){
+// La cantidad de sectores con menos de 100 entradas vendidas.
+    const int TamSectores= 12, LimiteEntradasVendidas=100;
+    int cantidadSectores =0, indiceSector=0;
 
-    ArchivoServicioMesa aServicioMesa("restaurant.dat");
-    int cantidadServicioMesa = aServicioMesa.CantidadRegistros();
-    if (cantidadServicioMesa==0){
-        cout << "PUNTO 1: no hay registros. " << endl;
+
+    ArchivoVentas archivo("entradas.dat");
+    int cantidadRegistros = archivo.CantidadRegistros();
+
+    if (cantidadRegistros==0){
+        cout << "No hay registros." << endl;
         return;
     }
-    float puntajeTotal =0, promedio;
-    int cantidadMayoresPromedio=0;
-
-    for (int i=0;i<cantidadServicioMesa;i++){
-        ServicioMesa registro;
-        registro = aServicioMesa.Leer(i);
-        puntajeTotal += registro.getPuntajeObtenido();
-    }
-    promedio =puntajeTotal/cantidadServicioMesa;
 
 
-    for (int i =0;i <cantidadServicioMesa;i++){
-        ServicioMesa registro;
-        registro =aServicioMesa.Leer(i);
-        if (registro.getPuntajeObtenido()>promedio){
-            cantidadMayoresPromedio++;
+    int VecEntradasSector [TamSectores] = {0};
+
+   for (int i=0; i < cantidadRegistros; i++){
+        Venta registro;
+        registro = archivo.Leer(i);
+
+    if (registro.getEstado()==true){
+        indiceSector = registro.getIdSector() -1;
+        if (indiceSector>=0 && indiceSector<TamSectores){
+            VecEntradasSector [indiceSector] += registro.getCantidad() ;
         }
     }
 
-    cout << "Punto 1: " << cantidadMayoresPromedio << endl;
-    cout << endl;
+}
+
+for (int i =0; i<TamSectores; i++){
+    if (VecEntradasSector[i]<LimiteEntradasVendidas){
+        cantidadSectores++;
+    }
+}
+cout << "PUNTO 1: La cantidad de sectores con menos de " << LimiteEntradasVendidas << " entradas vendidas es/son: " << cantidadSectores << endl;
+cout << endl;
 }
 
 void Examen::Punto2(){
+// La/s ID/s de Sector con un importe total recaudado mayor a $ 450 millones.
 
-    ArchivoServicioMesa archivo("restaurant.dat");
+    const int TamSectores=12, LimiteImporteTotalRecaudado=450000000;
+    float importeTotalXSector [TamSectores] = {0};
+    int indiceSector=0;
+    bool encontrado = false;
+
+    ArchivoVentas archivo("entradas.dat");
     int cantidadRegistros = archivo.CantidadRegistros();
+
     if (cantidadRegistros==0){
-        cout << "PUNTO 2: no hay registros. " << endl;
+        cout << "No hay registros." << endl;
         return;
     }
-    float recaudacion [70] = {0};
+
 
     for (int i=0; i < cantidadRegistros; i++){
-        ServicioMesa registro=archivo.Leer(i);
-        int indicePlato = registro.getIDPlato()-1;
-        if (indicePlato>=0&&indicePlato<70){
-            recaudacion [indicePlato]+=registro.getImporte();
+        Venta registro;
+        registro = archivo.Leer(i);
+
+    if (registro.getEstado()==true){
+        indiceSector = registro.getIdSector() -1;
+        if (indiceSector>=0 && indiceSector<TamSectores){
+            importeTotalXSector[indiceSector] += registro.getImporte();
         }
     }
+}
 
-    int platoMayorRecaudacion=1;
 
-    for (int i=1; i<70; i++){
-        if (recaudacion[i]>recaudacion[platoMayorRecaudacion-1]){
-            platoMayorRecaudacion=i+1;
+     cout << "PUNTO 2: ID de los sectores que recaudaron un importe total mayor a $" << LimiteImporteTotalRecaudado;
+     cout << endl;
+
+     for (int i =0;i<TamSectores;i++){
+        if (importeTotalXSector[i]>LimiteImporteTotalRecaudado){
+            cout << "Sector: " << i+1 << endl;
+            encontrado=true;
         }
+     }
+    if (encontrado==false){
+        cout << "Ningun sector supero los $"<< LimiteImporteTotalRecaudado<< " recaudados." << endl;
     }
 
-    cout << "Punto 2: plato con mayor recaudacion: "<< platoMayorRecaudacion<< endl;
-    cout << endl;
+
 
 }
 
 void Examen::Punto3(){
 
-    ArchivoServicioMesa archivo("restaurant.dat");
-    int cantidadRegistros = archivo.CantidadRegistros();
-    if (cantidadRegistros==0){
-        cout << "PUNTO 3: no hay registros. " << endl;
-        return;
-    }
+/* Crear mecanismo de autenticación que se obtiene a partir del análisis del contenido del archivo.
+1. Tamaño en bytes del archivo.
+2. Cantidad de registros activos.
+3. Cantidad de registros borrados.
+4. Valor máximo de la cantidad de entradas vendidas correspondiente a un registro activo.
+*/
+const int Tam = 4;
+int cantidadActivos = 0, cantidadBorrados=0, mayorcantidadEntradas=0;
 
-    float propinasRecaudadas [20]={0};
+FILE *pArchivo = fopen ("entradas.dat" , "rb");
 
-    for (int i =0; i<cantidadRegistros;i++){
-        ServicioMesa registro=archivo.Leer(i);
-
-        if (registro.getFecha().getAnio()== 2024 && registro.getPropina()>0){
-        int indiceMozo = registro.getIDMozo()-1;
-        if (indiceMozo>=0 && indiceMozo<20){
-            propinasRecaudadas[indiceMozo]+= registro.getPropina();
-        }
-        }
-    }
-
-    int MozoMayorPropina=1;
-
-    for (int i=1;i<20;i++){
-        if (propinasRecaudadas[i]>propinasRecaudadas[MozoMayorPropina-1]){
-            MozoMayorPropina=i+1;
-        }
-    }
-
-    cout << "Punto 3: Mozo con mayor propina: " << MozoMayorPropina << endl;
-    cout << endl;
-
+if (pArchivo== nullptr){
+    cout<< "ERROR: NO SE PUDO ABRIR EL ARCHIVO." << endl;
+    return;
 }
 
-///PREGUNTAS ADICIONALES
+fseek (pArchivo, 0, SEEK_END );
+int tamanioBytes = ftell (pArchivo);
+fclose (pArchivo);
 
-void Examen::Punto4(){
-/*
-Listar la cantidad de servicios de mesa que no tuvieron propina.
-*/
-ArchivoServicioMesa archivo("restaurant.dat");
+ArchivoVentas archivo ("entradas.dat");
 int cantidadRegistros = archivo.CantidadRegistros();
-if (cantidadRegistros==0){
-        cout << "PUNTO 4: no hay registros. " << endl;
-        return;
-    }
-int cantSinPropina =0;
-
-for(int i = 0; i < cantidadRegistros; i++){
-    ServicioMesa registro = archivo.Leer(i);
 
 
-if (registro.getPropina()==0){
-    cout << "Servicio sin propina: " << registro.getIDServicioMesa() << endl;
-    cantSinPropina++;
-}
-}
-cout << "Punto 4: Cantidad de servicios sin propina: " << cantSinPropina << endl;
-cout << endl;
-
-}
-
-void Examen::Punto5(){
-/*
-Listar el/los número/s de plato con menor cantidad de servicios de mesa el año 2024.
-Se deben informar todos los números de plato que tengan la cantidad mínima de servicios.
-*/
-ArchivoServicioMesa archivo("restaurant.dat");
-int cantidadRegistros = archivo.CantidadRegistros();
-if (cantidadRegistros==0){
-        cout << "PUNTO 5: no hay registros. " << endl;
-        return;
-    }
-   int cantidadPorPlato [70] = {0};
-
-    for (int i=0;i<cantidadRegistros;i++){
-        ServicioMesa registro=archivo.Leer(i);
-
-    if (registro.getFecha().getAnio()== 2024){
-        int indicePlato=registro.getIDPlato()-1;
-
-        if (indicePlato>=0 && indicePlato<70){
-        cantidadPorPlato[indicePlato]++;
+for (int i =0; i<cantidadRegistros;i++){
+    Venta registro;
+    registro = archivo.Leer(i);
+    if ( registro.getEstado()==true){
+        cantidadActivos++;
+        if (registro.getCantidad()>mayorcantidadEntradas){
+            mayorcantidadEntradas=registro.getCantidad();
         }
-    }
-    }
-    int cantidadMinima = cantidadPorPlato [0];
-
-    for (int i=1; i<70; i++){
-        if (cantidadPorPlato[i]<cantidadMinima){
-            cantidadMinima=cantidadPorPlato[i];
-        }
-    }
-    cout << "PUNTO 5: el/los plato/s con menor cantidad de servicios en 2024 son (con " << cantidadMinima << " servicio/s) :" << endl;
-    for (int i=0; i < 70;i++){
-        if (cantidadPorPlato[i]==cantidadMinima){
-            cout << i+1 << " " ;
-        }
-    }
-    cout << endl;
-    cout << endl;
-}
-
-void Examen::Punto6(){
-/*
-Listar el número de mozo con mayor importe recaudado
- entre todos los servicios de mesa que atendió.
-*/
-
-ArchivoServicioMesa archivo("restaurant.dat");
-int cantidadRegistros = archivo.CantidadRegistros();
-if (cantidadRegistros==0){
-        cout << "PUNTO 6: no hay registros. " << endl;
-        return;
-    }
-
-    float recaudacionImporteTotal [20]={0};
-
-    for (int i =0;i<cantidadRegistros;i++){
-        ServicioMesa registro = archivo.Leer(i);
-        int indiceMozo= registro.getIDMozo()-1;
-
-        if (indiceMozo>=0 && indiceMozo<20){
-            recaudacionImporteTotal[indiceMozo]+= registro.getImporte();
-        }
-    }
-int indiceMayor=0;
-
-for(int i =1;i<20;i++){
-    if (recaudacionImporteTotal[i]>recaudacionImporteTotal[indiceMayor]){
-        indiceMayor=i;
+    }else {
+    cantidadBorrados++;
     }
 }
-cout << "Punto 6: mozo con mayor importe total: " << indiceMayor+1 << endl;
-cout << "importe: " << recaudacionImporteTotal[indiceMayor] << endl;
-cout << endl;
+int VecAutenticacion [Tam]= {tamanioBytes, cantidadActivos, cantidadBorrados, mayorcantidadEntradas};
+
+cout << "PUNTO 3: mecanismo de autenticacion: " << endl;
+
+for (int i =0; i<Tam; i++){
+    cout << VecAutenticacion[i] << endl;
 }
 
-void Examen::Punto7(){
-/*
-Emitir un listado de los servicios de mesa del año 2024
-ordenados de menor a mayor por importe.
-*/
 
-ArchivoServicioMesa archivo("restaurant.dat");
-int cantidadRegistros = archivo.CantidadRegistros();
-if (cantidadRegistros==0){
-        cout << "PUNTO 7: no hay registros. " << endl;
-        return;
-    }
-int cantidad2024 =0;
-
-for (int i =0;i<cantidadRegistros;i++){
-    ServicioMesa registro=archivo.Leer(i);
-    if (registro.getFecha().getAnio()==2024){
-        cantidad2024++;
-    }}
-    if (cantidad2024==0){
-        cout << "No hay servicios de 2024. " << endl;
-        return ;
-    }
-    ServicioMesa *servicios2024 = new ServicioMesa[cantidad2024];
-
-    if (servicios2024==nullptr){
-        cout << "ERROR EN LA ASIGNACION DE MEMORIA DINAMICA" << endl;
-        return;
-    }
-    int posicion =0;
-
-    for (int i=0;i<cantidadRegistros;i++){
-        ServicioMesa registro = archivo.Leer(i);
-
-    if (registro.getFecha().getAnio()==2024){
-        servicios2024[posicion] = registro;
-        posicion++;
-    }
-    }
-    for (int j=0;j<cantidad2024-1;j++){
-        for (int i=0;i<cantidad2024-1-j;i++){
-            if(servicios2024[i].getImporte()>servicios2024[i+1].getImporte()){
-
-            ServicioMesa aux = servicios2024[i];
-            servicios2024[i] = servicios2024[i+1];
-            servicios2024 [i+1] =aux;
-            }
-        }
-    }
-    cout << "PUNTO 7: servicios de 2024 ordenados por importe: " << endl;
-    cout << endl;
-    for (int i=0;i<cantidad2024;i++){
-        cout << servicios2024[i].toCSV()<<endl;
-    }
-
-    delete[] servicios2024;
-}
-
-void Examen::Punto8(){
-    /*
-     Generar un archivo con la recaudación total (suma de los importes de cada servicio de mesa)
-     de cada número de plato. El formato de los registros del archivo tiene que ser el siguiente:
-     IDPlato, promedio de puntaje y recaudación total.
-    */
-
-    //1. Lector de archivo+obtener cantidad de registros:
-    ArchivoServicioMesa archivo("restaurant.dat");
-    int cantidadRegistros = archivo.CantidadRegistros();
-
-    if(cantidadRegistros == 0){
-        cout << "PUNTO 8: no hay registros." << endl;
-        return;
-    }
-
-    //2. Crear 3 arrays de 70 posiciones:
-    float sumaPuntajes[70] = {0};
-    int cantidadPorPlato[70] = {0};
-    float recaudacionPorPlato[70] = {0};
-
-    //3. Recorrer los registros y convertir IDPlato a indice:
-    for(int i = 0; i < cantidadRegistros; i++){
-        ServicioMesa registro = archivo.Leer(i);
-    int indicePlato = registro.getIDPlato() - 1;
-
-    //4. Acumular el puntaje, incrementar el contador y acumular el importe.
-    if(indicePlato >= 0 && indicePlato < 70){
-            sumaPuntajes[indicePlato] += registro.getPuntajeObtenido();
-            cantidadPorPlato[indicePlato]++;
-            recaudacionPorPlato[indicePlato] += registro.getImporte();
-        }
-    }
-    //5. Abrir un archivo de texto de salida.
-    FILE *pArchivo = fopen ("recaudacion_platos.txt", "w");
-
-    if (pArchivo==NULL){
-        cout << "Punto 8: no se pudo crear el archivo. " << endl;
-        return;
-    }
-    // 6. Para cada plato calcular sumapuntajes/cantservicios
-    for (int i =0;i<70;i++){
-        float promedio=0;
-        if (cantidadPorPlato[i]>0){
-            promedio=sumaPuntajes[i]/cantidadPorPlato[i];
-        }
-        fprintf(pArchivo, "%d,%.2f,%.2f\n", i+1, promedio, recaudacionPorPlato[i]);
-    }
-    fclose(pArchivo);
-
-    cout << "Punto 8: se creo recaudacion_platos.txt." << endl;
-    cout << endl;
-
-}
-
-void Examen::Punto10(){
-    /*
-    Informar la cantidad de servicios de mesa para cada uno de los meses
-    (no interesa el año)
-    */
-    // 1. Lector de archivo+obtener cant de registros
-    ArchivoServicioMesa archivo("restaurant.dat");
-    int cantidadRegistros = archivo.CantidadRegistros();
-
-    if(cantidadRegistros == 0){
-        cout << "PUNTO 10: no hay registros." << endl;
-        return;
-    }
-    // 2. Crear un array de 12 contadores.
-    int cantidadPorMes [12]={0};
-
-    //3. Recorrer registros y obtener mes de la fecha. Restarle 1 para convertirlo en indice
-    for (int i =0; i<cantidadRegistros;i++){
-        ServicioMesa registro = archivo.Leer(i);
-        int indiceMes = registro.getFecha().getMes()-1;
-    // 4. Incrementar contador.
-        if (indiceMes >=0 && indiceMes < 12){
-            cantidadPorMes [indiceMes]++;
-        }
-    }
-for (int i =0;i<12;i++){
-    cout << "Mes " << i+1 << ": " << cantidadPorMes[i] << " servicios" << endl;
-}
-}
-
-void Examen::Punto11(){
-/*
-El número de servicio, si existe, que haya obtenido a la vez
-la mayor propina y la mejor calificación.
-*/
-// 1. Leer archivo y obtener cant de registros
- ArchivoServicioMesa archivo("restaurant.dat");
-    int cantidadRegistros = archivo.CantidadRegistros();
-
-    if(cantidadRegistros == 0){
-        cout << "PUNTO 11: no hay registros." << endl;
-        return;
-    }
-
-//2. Inicializar la mayor propina y mejor puntaje
-float mayorPropina = archivo.Leer(0).getPropina();
-float mejorPuntaje = archivo.Leer(0).getPuntajeObtenido();
-
-//3. Recorrer todos los servicios y actualizar ambos maximos
-for(int i = 1; i < cantidadRegistros; i++){
-        ServicioMesa registro = archivo.Leer(i);
-
-        if(registro.getPropina() > mayorPropina){
-            mayorPropina = registro.getPropina();
-        }
-
-        if(registro.getPuntajeObtenido() > mejorPuntaje){
-            mejorPuntaje = registro.getPuntajeObtenido();
-        }
-    }
-
-    bool encontrado = false;
-
-    cout << "PUNTO 11: servicio/s con mayor propina y mejor puntaje:" << endl;
-//4. Recorrer nuevamente y buscar registros con ambos maximos
-for(int i = 0; i < cantidadRegistros; i++){
-        ServicioMesa registro = archivo.Leer(i);
-
-        if(registro.getPropina() == mayorPropina &&
-           registro.getPuntajeObtenido() == mejorPuntaje){
-
-            cout << registro.toCSV() << endl;
-            encontrado = true;
-        }
-    }
-
-    if(!encontrado){
-        cout << "No hay un mismo servicio que tenga ambos máximos." << endl;
-    }
 }
